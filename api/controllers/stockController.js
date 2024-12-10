@@ -1,0 +1,66 @@
+const ModelStock = require('../models/Stock')
+
+// CREATE / POST
+const createStock = (req, res) => {
+  ModelStock
+    .create(req.body)
+    .then(stock => {
+      res.status(201).json(stock)
+    })
+    .catch(error => {
+      res.status(400).json(error.message)
+    })
+}
+
+// READ / GET
+
+const getStock = (req, res) => {
+  ModelStock
+    .get(req.query)
+    .then(stock => {
+      res.status(200).json(stock)
+    })
+    .catch(error => {
+      res.status(400).json(error.message)
+    })
+}
+// UPDATE / PATCH
+const updateOneStock = (req, res) => {
+  ModelStock
+    .update(req.params.stockId, req.body)
+    .then(stock => {
+      res.status(200).json(stock)
+    })
+    .catch(error => {
+      res.status(400).json(error.message)
+    })
+}
+
+// DELETE
+const softDeleteOneStock = (req, res) => {
+  ModelStock
+    .softDelete(req.params.stockId)
+    .then(() => {
+      res.status(204).json()
+    })
+    .catch(error => {
+      res.status(400).json(error.message)
+    })
+}
+const destroyOneStock = (req, res) => {
+  ModelStock
+    .destroy(req.params.stockId)
+    .then(() => {
+      res.status(204).json()
+    })
+    .catch(error => {
+      res.status(400).json(error.message)
+    })
+}
+module.exports = {
+  createStock,
+  getStock,
+  updateOneStock,
+  softDeleteOneStock,
+  destroyOneStock
+}

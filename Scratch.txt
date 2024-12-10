@@ -1,0 +1,263 @@
+CREATE TABLE branches (
+    branch_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(100) NOT NULL,
+    country VARCHAR(100) NOT NULL,
+    postal_code VARCHAR(10) NOT NULL,
+    phone VARCHAR(20) NOT NULL
+);
+
+/////
+
+
+CREATE TABLE suppliers (
+    supplier_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(100) NOT NULL,
+    country VARCHAR(100) NOT NULL,
+    postal_code VARCHAR(10) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+	email VARCHAR(100) NOT NULL,
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+	updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE stock (
+    stock_id SERIAL PRIMARY KEY,
+	fk_branch_id INTEGER NOT NULL,
+	fk_product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 0,
+	updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE categories (
+    category_id SERIAL PRIMARY KEY,
+	name VARCHAR(100) NOT NULL, 
+);
+
+
+/////
+
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+	name VARCHAR(255) NOT NULL,                  
+    description TEXT, 
+	price DECIMAL(10, 2) NOT NULL,
+    sku VARCHAR(50) NOT NULL UNIQUE,         
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+	updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+	fk_supplier_id INT NOT NULL,
+	fk_category_id INT NOT NULL,
+);
+
+/////
+ALTER TABLE stock
+ADD CONSTRAINT stock_fk_branch_id_foreign FOREIGN KEY (fk_branch_id) REFERENCES branches(branch_id) ON DELETE CASCADE,
+ADD CONSTRAINT stock_fk_product_id_foreign FOREIGN KEY (fk_product_id) REFERENCES products(product_id) ON DELETE CASCADE;
+
+	ALTER TABLE products
+ADD CONSTRAINT products_fk_supplier_id_foreign FOREIGN KEY (fk_supplier_id) REFERENCES suppliers(supplier_id) ON DELETE CASCADE,
+ADD CONSTRAINT products_fk_category_id_foreign FOREIGN KEY (fk_category_id) REFERENCES categories(category_id) ON DELETE CASCADE;
+
+
+/////
+*sales_details con knex.js*
+
+/**
+ * @param { import("knex").Knex } knex
+ * @returns { Promise<void> }
+ */
+exports.up = function (knex) {
+  return knex.schema.hasTable('sales_details').then(function (exists) {
+    if (!exists) {
+      return knex.schema.createTable('sales_details', function (table) {
+        table.increments('sale_detail_id').primary()
+        table.integer('fk_sale_id').notNullable()
+        table.integer('fk_product_id').notNullable()
+        table.integer('quantity').notNullable()
+        table.decimal('unit_price', 10, 2).notNullable()
+        table.decimal('subtotal', 10, 2).notNullable()
+      })
+    }
+  })
+}
+
+/**
+     * @param { import("knex").Knex } knex
+     * @returns { Promise<void> }
+     */
+exports.down = function (knex) {
+  return knex.schema.dropTableIfExists('sales_details')
+}
+
+
+////
+*sales con knex.js*
+
+/**
+ * @param { import("knex").Knex } knex
+ * @returns { Promise<void> }
+ */
+exports.up = function (knex) {
+  return knex.schema.hasTable('sales').then(function (exists) {
+    if (!exists) {
+      return knex.schema.createTable('sales', function (table) {
+        table.increments('sale_id').primary()
+        table.integer('fk_branch_id').notNullable()
+          .references('branches.branch_id')
+          .onDelete('CASCADE')
+        table.integer('fk_customer_id').notNullable()
+        table.timestamp('sale_date', { useTz: true }).defaultTo(knex.fn.now())
+        table.decimal('total_amount', 10, 2).notNullable()
+      })
+    }
+  })
+}
+
+/**
+       * @param { import("knex").Knex } knex
+       * @returns { Promise<void> }
+       */
+exports.down = function (knex) {
+  return knex.schema.dropTableIfExists('sales')
+}
+
+/////
+*customers con knex.js*
+
+/**
+ * @param { import("knex").Knex } knex
+ * @returns { Promise<void> }
+ */
+exports.up = function (knex) {
+  return knex.schema.hasTable('customers').then(function (exists) {
+    if (!exists) {
+      return knex.schema.createTable('customers', function (table) {
+        table.increments('customer_id').primary()
+        table.string('name', 100).notNullable()
+        table.string('last_name_1', 100).notNullable()
+        table.string('last_name_2', 100).nullable()
+        table.string('email', 100).notNullable()
+        table.string('phone', 20).notNullable()
+        table.string('address', 255).notNullable()
+        table.string('city', 100).notNullable()
+        table.string('state', 100).notNullable()
+        table.string('country', 100).notNullable()
+        table.string('postal_code', 10).notNullable()
+        table.timestamp('registered_at', { useTz: true }).defaultTo(knex.fn.now())
+      })
+    }
+  })
+}
+
+/**
+         * @param { import("knex").Knex } knex
+         * @returns { Promise<void> }
+         */
+exports.down = function (knex) {
+  return knex.schema.dropTableIfExists('customers')
+}
+
+
+/////
+*ADD CONSTRAINTS TO SALES_DETAILS*
+
+/**
+ * @param { import("knex").Knex } knex
+ * @returns { Promise<void> }
+ */
+exports.up = function (knex) {
+  return knex.schema.table('sales_details', function (table) {
+    table.foreign('fk_sale_id').references('sales.sale_id').onDelete('CASCADE')
+    table.foreign('fk_product_id').references('products.product_id').onDelete('CASCADE')
+  })
+}
+
+/**
+       * @param { import("knex").Knex } knex
+       * @returns { Promise<void> }
+       */
+exports.down = function (knex) {
+  return knex.schema.table('sales_details', function (table) {
+    table.dropForeign('fk_sale_id')
+    table.dropForeign('fk_product_id')
+  })
+}
+
+
+////
+*ADD CONSTRAINTS TO SALES*
+
+/**
+ * @param { import("knex").Knex } knex
+ * @returns { Promise<void> }
+ */
+exports.up = function (knex) {
+  return knex.schema.table('sales', function (table) {
+    table.foreign('fk_customer_id').references('customers.customer_id').onDelete('CASCADE')
+  })
+}
+
+/**
+         * @param { import("knex").Knex } knex
+         * @returns { Promise<void> }
+         */
+exports.down = function (knex) {
+  return knex.schema.table('sales', function (table) {
+    table.dropForeign('fk_customer_id')
+  })
+}
+
+
+/////
+
+*****INSERTANDO DATA
+
+
+INSERT INTO branches (name, address, city, state, country, postal_code, phone) VALUES
+('Sucursal Centro', 'Av. Juárez 123', 'Ciudad de México', 'CDMX', 'México', '06000', '555-1234'),
+('Sucursal Guadalajara', 'Av. Vallarta 789', 'Guadalajara', 'Jalisco', 'México', '44100', '333-9876'),
+('Sucursal Monterrey', 'Paseo de los Leones 321', 'Monterrey', 'Nuevo León', 'México', '64600', '818-1234'),
+('Sucursal Cancún', 'Blvd. Kukulcan 123', 'Cancún', 'Quintana Roo', 'México', '77500', '998-5678'),
+('Sucursal Mérida', 'Calle 60 456', 'Mérida', 'Yucatán', 'México', '97000', '999-8765'),
+('Branch Downtown', '123 Main St', 'New York', 'NY', 'USA', '10001', '212-555-0123'),
+('Branch Chicago', '456 W Madison St', 'Chicago', 'IL', 'USA', '60661', '312-555-0456');
+
+
+//////
+
+SEEDS CON KNEX.JS
+
+////
+***Sumatoria de totales de sales_details*****
+SELECT fk_sale_id, SUM(subtotal) AS total
+  FROM sales_details
+  GROUP BY fk_sale_id
+  ORDER BY fk_sale_id
+
+La sumatoria de los subtotales. Transformado en array.
+
+SELECT ARRAY_AGG(total) AS total_subtotals
+FROM (
+  SELECT fk_sale_id, SUM(subtotal) AS total
+  FROM sales_details_1
+  GROUP BY fk_sale_id
+  ORDER BY fk_sale_id
+) AS subquery;
+
+/////
+**Añadir columna active***
+ALTER TABLE branches ADD COLUMN active BOOLEAN DEFAULT true;
+UPDATE branches SET active = true;
+
+////
+****truncar y resetear identificador serial (hacer esto eliminara todas las filas donde haya algún dato de la tabla branches)****
+TRUNCATE branches RESTART IDENTITY CASCADE
+////
+****Reestablece la secuencia desde el ultimo valor****
+SELECT setval(pg_get_serial_sequence('branches', 'branch_id'), (SELECT MAX(branch_id) FROM branches));
+

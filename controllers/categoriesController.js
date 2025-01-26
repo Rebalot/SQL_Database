@@ -18,6 +18,7 @@ const getCategories = (req, res) => {
   ModelCategories
     .get(req.query)
     .then(categories => {
+      categories.sort((a, b) => a.category_id - b.category_id)
       res.status(200).json(categories)
     })
     .catch(error => {

@@ -18,6 +18,7 @@ const getSuppliers = (req, res) => {
   ModelSuppliers
     .get(req.query)
     .then(suppliers => {
+      suppliers.sort((a, b) => a.supplier_id - b.supplier_id)
       res.status(200).json(suppliers)
     })
     .catch(error => {

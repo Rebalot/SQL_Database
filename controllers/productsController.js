@@ -18,6 +18,7 @@ const getProducts = (req, res) => {
   ModelProducts
     .get(req.query)
     .then(products => {
+      products.sort((a, b) => a.product_id - b.product_id)
       res.status(200).json(products)
     })
     .catch(error => {

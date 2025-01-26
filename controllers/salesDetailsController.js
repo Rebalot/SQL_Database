@@ -18,6 +18,7 @@ const getSalesDetails = (req, res) => {
   ModelDetails
     .get(req.query)
     .then(salesDetails => {
+      salesDetails.sort((a, b) => a.sale_detail_id - b.sale_detail_id)
       res.status(200).json(salesDetails)
     })
     .catch(error => {

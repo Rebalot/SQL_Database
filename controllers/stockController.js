@@ -18,6 +18,7 @@ const getStock = (req, res) => {
   ModelStock
     .get(req.query)
     .then(stock => {
+      stock.sort((a, b) => a.stock_id - b.stock_id)
       res.status(200).json(stock)
     })
     .catch(error => {

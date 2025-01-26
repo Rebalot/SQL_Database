@@ -17,6 +17,7 @@ const getBranches = (req, res) => {
   ModelBranches
     .get(req.query)
     .then(branches => {
+      branches.sort((a, b) => a.branch_id - b.branch_id)
       res.status(200).json(branches)
     })
     .catch(error => {

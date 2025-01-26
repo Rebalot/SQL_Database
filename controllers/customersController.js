@@ -18,6 +18,7 @@ const getCustomers = (req, res) => {
   ModelCustomers
     .get(req.query)
     .then(customers => {
+      customers.sort((a, b) => a.customer_id - b.customer_id)
       res.status(200).json(customers)
     })
     .catch(error => {

@@ -4,3 +4,10 @@
 .env.test.local
 .env.production.local
 .env.local
+
+node_modules
+package-lock.json
+
+db_schema/MyStore_Schema.png
+db_schema/Schema.png
+db_schema/Scratch.txt
